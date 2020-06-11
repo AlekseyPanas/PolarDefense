@@ -2,8 +2,6 @@ import pygame
 import Constants
 import Globe
 
-print(type({1, 2, 3}))
-
 screen = pygame.display.set_mode(Constants.SCREEN_SIZE, pygame.DOUBLEBUF)
 clock = pygame.time.Clock()
 fps = 0
@@ -12,16 +10,16 @@ last_fps_show = 0
 # Converts images
 Constants.convert()
 
-running = True
+Globe.start_app()
 
-while running:
+while Globe.running:
     Globe.GAME.run_game(screen)
 
     Globe.events = pygame.event.get()
 
     for event in Globe.events:
         if event.type == pygame.QUIT:
-            running = False
+            Globe.running = False
 
     pygame.display.update()
 

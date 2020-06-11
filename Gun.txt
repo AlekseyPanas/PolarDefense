@@ -1,21 +1,50 @@
-Turret has an angle and a desired angle. Turret also has entered angle
+CHANGELOG:
+-------------=
+v(large_release).(small_fix)
+-------------=
+v.1.0:
+    - Added Tutorial Menu
+    - Added 'Jetboat Charger' enemy
+    - Added 'Cruiser Charger' enemy
+    - Added 'Mothership Charger' enemy
 
-Turret always turns to reach the desired angle.
+v.0.2:
+    - Fixed resizing bugs from previous version
+    - Set the minimal radius input to 75
+    - Fixed ocean graph labels from 900 to 450
 
-The desired angle changes to the entered angle when "Calibrate" is pressed
+v.0.1:
+    - Added Turret object which can be rotated via angle and radius inputs
+    - Added Turret Laser
+    - Added Explosion animation
+    - Added Shooting ability and recoil
+    BUGS:
+        - 0 radius causes explosion at origin and not at turret tip
+        - Resizing screen changes the radius distance for the shot
+        - Resizing the screen does not change the laser thickness
 
-desired angle changes relatively after each shot due to recoil
-
-Space bar fires a shot if the gun is stationary (angle = desired angle). Otherwise error is sent
+/\/\/\/\/\/\/\/\
+PLANNED FEATURES:
+--------------=
+    - Add Chat log to display various information such as error messages or kill feeds
+    - Add shooting variants of each current enemy with unique AIs
+    - Add path prediction for enemies so that enemies can prevent colliding (Use alternate thread
+      to calculate the current path forecast for each ship. Any predicted collisions will be resolved
+      by lowering the speed of one of the ships)
+    - Add collision detection between enemy ships and add explosions on collision which deal 1 damage to each of
+      the collided ships
+    - Add Turret missiles which will follow the path of a parametric equation given by the user (Use another thread
+      to calculate the per pixel path of the ship which will store every pixel point on the path)
+    - Add missile lifespan as a way for the user to prevent the missile from crashing back into turret if the equation
+      causes the curve to return to origin
+    - Add waves to the ocean /\/\/\ O_o
+    - Add Pausing ability
+    - Add local high score saving and a leader board with dates of each of the top 10 scores achieved
 
 
 
 ==========================
-Add chat log for error messages
-==========================
-Ships spawn and move towards center:
-
-Any no gun ships simply try to collide with the turret
+AI Descriptions for ships:
 
 Jet (1 hp):
 	Chooses a radius around the turret and boats to it. Then proceeds to pick points on circle with that radius and move between them in straight lines while stopping to fire
@@ -26,5 +55,7 @@ Medium Ship (2 hp):
 	
 Large ship (3 hp):
 	- Select random points on map and move to them while stopping every now and then to fire at turret
+	
+
 
 

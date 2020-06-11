@@ -1,5 +1,6 @@
 import Sprite
 import Constants
+import random
 
 
 class Game:
@@ -10,8 +11,11 @@ class Game:
         # Since you shouldn't add sprites during iteration, they are queued to be added at the end of the loop
         self.sprite_queue = []
 
-        self.add_sprite(Sprite.Turret(None, 999, (Constants.SCREEN_SIZE[0] / 2, Constants.SCREEN_SIZE[1] / 2),
+        self.add_sprite(Sprite.Turret(None, 999, {}, (Constants.SCREEN_SIZE[0] / 2, Constants.SCREEN_SIZE[1] / 2),
                                       (0, int(0.022 * Constants.SCREEN_SIZE[1])), 80, 40))
+
+        # DEBUG
+        [self.add_sprite(Sprite.JetshipCharger(None, -5, {}, Constants.JET_CHARGER_IMAGE, random.randint(0, 360), [450, 450], random.randint(30, 80) / 100, 1)) for x in range(3)]
 
     def add_sprite(self, sprite):
         self.sprite_queue.append(sprite)

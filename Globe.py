@@ -1,6 +1,13 @@
 import Game
 import pygame
 
-GAME = Game.Game()
+GAME = None
+events = None
+running = True
 
-events = pygame.event.get()
+
+def start_app():
+    global GAME, events
+    GAME = Game.Game()
+
+    events = pygame.event.get()

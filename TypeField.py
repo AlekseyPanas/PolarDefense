@@ -3,7 +3,7 @@ import Constants
 
 
 class Field:
-    def __init__(self, pos, length, font, image, disable_negative):
+    def __init__(self, pos, length, font, image, disable_negative, minimum_value):
         # Draw pos of field
         self.pos = pos
         # Is the type field selected
@@ -32,6 +32,9 @@ class Field:
         self.allowed_symbols = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "."}
         if not self.disable_negative:
             self.allowed_symbols.add("-")
+
+        # The smallest value that can be entered into the field.
+        self.minimum_value = minimum_value
 
         # The surface that everything will be blitted on
         self.surface = pygame.Surface((length, self.height), pygame.SRCALPHA, 32)
@@ -122,3 +125,13 @@ class Field:
         if self.text == "0":
             self.text = ""
             self.cursor_index = -1
+
+        # Ensures the minimum value is enforced as long as the field is not selected
+        if self.minimum_value is not None:
+            if self.text == "-" or self.text == "":
+                val = 0
+            else:
+                val = float(self.text)
+            if (not self.selected) and val < self.minimum_value:
+                self.text = str(self.minimum_value)
+                self.cursor_index = len(str(self.minimum_value)) - 1
