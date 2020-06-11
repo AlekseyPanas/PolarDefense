@@ -1,0 +1,30 @@
+Turret has an angle and a desired angle. Turret also has entered angle
+
+Turret always turns to reach the desired angle.
+
+The desired angle changes to the entered angle when "Calibrate" is pressed
+
+desired angle changes relatively after each shot due to recoil
+
+Space bar fires a shot if the gun is stationary (angle = desired angle). Otherwise error is sent
+
+
+
+==========================
+Add chat log for error messages
+==========================
+Ships spawn and move towards center:
+
+Any no gun ships simply try to collide with the turret
+
+Jet (1 hp):
+	Chooses a radius around the turret and boats to it. Then proceeds to pick points on circle with that radius and move between them in straight lines while stopping to fire
+	
+Medium Ship (2 hp):
+	- Spawns copters which can be shot down. Copters fly directly at turret and explode on contact.
+	- Ship moves slowly to target before selecting a radius and circling the turrent while firing at it
+	
+Large ship (3 hp):
+	- Select random points on map and move to them while stopping every now and then to fire at turret
+
+
