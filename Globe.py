@@ -1,13 +1,14 @@
 import Game
 import pygame
+import Menu
 
-GAME = None
+MENU = None
 events = None
 running = True
 
 
 def start_app():
-    global GAME, events
-    GAME = Game.Game()
+    global MENU, events
+    MENU = Menu.Menu()
 
     events = pygame.event.get()

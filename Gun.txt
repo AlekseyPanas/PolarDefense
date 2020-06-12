@@ -7,6 +7,9 @@ v.1.0:
     - Added 'Jetboat Charger' enemy
     - Added 'Cruiser Charger' enemy
     - Added 'Mothership Charger' enemy
+    BUGS:
+        - Velocity of ships varies with screen size
+        - Shadow does not scale with screen size in tutorial popup
 
 v.0.2:
     - Fixed resizing bugs from previous version
@@ -40,6 +43,8 @@ PLANNED FEATURES:
     - Add waves to the ocean /\/\/\ O_o
     - Add Pausing ability
     - Add local high score saving and a leader board with dates of each of the top 10 scores achieved
+    - Add Chat boxes on levels which appear as tutorial tips (Make it a class that gets integrated into the level)
+    - Add level features and json reading
 
 
 

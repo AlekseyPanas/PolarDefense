@@ -15,7 +15,7 @@ class Game:
                                       (0, int(0.022 * Constants.SCREEN_SIZE[1])), 80, 40))
 
         # DEBUG
-        [self.add_sprite(Sprite.JetshipCharger(None, -5, {}, Constants.JET_CHARGER_IMAGE, random.randint(0, 360), [450, 450], random.randint(30, 80) / 100, 1)) for x in range(3)]
+        [self.add_sprite(Sprite.JetshipCharger(None, -5, {}, Constants.JET_CHARGER_IMAGE, random.randint(0, 360), [450, 450], 3, 1)) for x in range(3)]
 
     def add_sprite(self, sprite):
         self.sprite_queue.append(sprite)

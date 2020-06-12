@@ -1,0 +1,4 @@
+- Rework Code
+- Make Menu version of turret
+- Add blurring ability
+- Make Menu (Levels, Endless, Quit, Tutorial, Credits)

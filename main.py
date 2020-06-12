@@ -13,7 +13,7 @@ Constants.convert()
 Globe.start_app()
 
 while Globe.running:
-    Globe.GAME.run_game(screen)
+    Globe.MENU.run_menu(screen)
 
     Globe.events = pygame.event.get()
 
@@ -27,7 +27,7 @@ while Globe.running:
     last_fps_show += 1
     if last_fps_show == 30:  # every 30th frame:
         fps = clock.get_fps()
-        pygame.display.set_caption("Polar Defense" + "   FPS: " + str(fps))
+        pygame.display.set_caption("Polar Defense v.1.0" + "   FPS: " + str(fps))
         last_fps_show = 0
 
     # fps max 60

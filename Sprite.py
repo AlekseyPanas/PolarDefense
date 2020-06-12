@@ -81,11 +81,17 @@ class Animation(Object):
 
         # Surface onto which the animation will be drawn
         self.surface = pygame.Surface((self.frame_width, self.frame_height), pygame.SRCALPHA, 32)
+        # Calls update once to blit the first frame
+        self.update()
 
         # Refers to another object to which this one is bound. The explosion will follow the binder object
         self.binder = binder
 
     def run_sprite(self, screen):
+        self.update()
+        self.draw_sprite(screen)
+
+    def update(self):
         # If bound, change position
         if self.binder is not None:
             self.pos = self.binder.pos
@@ -95,18 +101,23 @@ class Animation(Object):
             # Calculates the sheet position of frame
             horizontal_pos = self.frame % self.sheet_frames_w
             self.frame_pos = ((horizontal_pos if not horizontal_pos == 0 else 9) - 1, int(self.frame / self.sheet_frames_h - .01))
+            # Clears surface
             self.surface.fill((255, 255, 255, 0))
 
             # Resets frame when it finishes cycling the sheet
             self.frame += 1
             if self.frame > self.frame_count:
                 self.frame = 1
+
             # Shifts the sheet accordingly and blits the frame onto the surface
-            self.surface.blit(self.sheet, (-self.frame_pos[0] * self.frame_width, -self.frame_pos[1] * self.frame_height))
-        # Blits surface onto screen
-        screen.blit(self.surface, (self.pos[0] - self.frame_width / 2, self.pos[1] - self.frame_height / 2))
+            self.surface.blit(self.sheet,
+                              (-self.frame_pos[0] * self.frame_width, -self.frame_pos[1] * self.frame_height))
 
         self.tick += 1
+
+    def draw_sprite(self, screen):
+        # Blits surface onto screen
+        screen.blit(self.surface, (self.pos[0] - self.frame_width / 2, self.pos[1] - self.frame_height / 2))
 
 
 '''
@@ -254,14 +265,14 @@ class Turret(Object):
 
                     collide_point = Constants.get_pos_from_angle_and_radius(self.image_rect.center, self.angle, self.radius)
 
-                    Globe.GAME.add_sprite(TurretLaser(None, 0, {}, self.image_rect.center, self.angle, self.radius))
-                    Globe.GAME.add_sprite(Animation(-1, 5, {}, (9, 9), 2, Constants.EXPLOSION_IMAGE, collide_point, 74))
+                    Globe.MENU.GAME.add_sprite(TurretLaser(None, 0, {}, self.image_rect.center, self.angle, self.radius))
+                    Globe.MENU.GAME.add_sprite(Animation(-1, 5, {}, (9, 9), 2, Constants.EXPLOSION_IMAGE, collide_point, 74))
 
                     # Adds recoil
                     self.desired_angle += random.randint(-self.recoil, self.recoil)
 
                     # Collision Detection
-                    for sprite in Globe.GAME.SPRITES:
+                    for sprite in Globe.MENU.GAME.SPRITES:
                         if "enemy" in sprite.tags:
                             # Checks for hits using the collide point and explosion radius
                             if sprite.hit_check(collide_point, Constants.SCREEN_SIZE[0] / 15):
@@ -345,17 +356,23 @@ class Enemy(Object):
         # detects if explosion spawned
         self.exploded = False
 
+        # Rect.Coordinates to display
+        self.display_coords = ()
+
     def run_sprite(self, screen):
         pass
 
     def draw_ship(self, screen):
         self.image, self.image_rect = Object.rotate(self.image_save, self.image_rect, self.angle)
 
-        # Calls death animation
         if self.health <= 0:
-            self.die()
+            self.image.fill((255, 255, 255, self.opacity if self.opacity >= 0 else 0), None, pygame.BLEND_RGBA_MULT)
 
         screen.blit(self.image, self.image_rect)
+
+        # Draws rectangular Coordinates
+        rendered_text = Constants.COURIER_FONT.render(str(self.display_coords), False, (150, 150, 255))
+        screen.blit(rendered_text, (self.image_rect.left + .3 * self.image_rect.w, self.image_rect.top + self.image_rect.h))
 
         # Draw debug circles of all the hitboxes
         # pygame.draw.circle(screen, (0, 255, 0), self.image_rect.center, int(self.large_hitbox), 1)
@@ -371,14 +388,12 @@ class Enemy(Object):
         if not self.init_dead:
             self.init_dead = True
             turn_speed = int(math.sqrt(self.velocity[0] ** 2 + self.velocity[1] ** 2) * 15)
-            print("speed", turn_speed)
             self.angle_velocity = random.randint(-turn_speed, turn_speed) / 10
 
-        self.image.fill((255, 255, 255, self.opacity if self.opacity >= 0 else 0), None, pygame.BLEND_RGBA_MULT)
         self.opacity -= 1.5
 
         if self.opacity < 200 and not self.exploded:
-            Globe.GAME.add_sprite(Animation(-1, 5, {}, (9, 9), 2, Constants.EXPLOSION_IMAGE, (-500, -500), 74, binder=self))
+            Globe.MENU.GAME.add_sprite(Animation(-1, 5, {}, (9, 9), 2, Constants.EXPLOSION_IMAGE, (-500, -500), 74, binder=self))
             self.exploded = True
 
         if self.opacity <= 0:
@@ -403,6 +418,14 @@ class Enemy(Object):
 
         self.image_rect.centerx = self.pos[0]
         self.image_rect.centery = self.pos[1]
+
+        # Calls death animation
+        if self.health <= 0:
+            self.die()
+
+        # Calculates display coordinates
+        self.display_coords = (int((self.pos[0] / Constants.SCREEN_SIZE[0]) * 900 - 450),
+                               int(((Constants.SCREEN_SIZE[1] - self.pos[1]) / Constants.SCREEN_SIZE[1]) * 900 - 450))
 
     # Checks collision with another circular hitbox against all the hitboxes of this enemy
     def hit_check(self, pos, radius):
