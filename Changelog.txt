@@ -2,11 +2,27 @@ CHANGELOG:
 -------------=
 v(large_release).(small_fix)
 -------------=
+v.1.2:
+    - Added Buoy animation
+    BUGS:
+        - Shadow does not scale with screen size in tutorial popup
+    ISSUES:
+        - Switching between input fields is slow and frustrating
+
+v.1.1:
+    - Removed Pausing ability
+    - Fixed velocity inconsistency with varying screen sizes
+    - Added 'Buoy' enemy
+    BUGS:
+        - Shadow does not scale with screen size in tutorial popup
+    ISSUES:
+        - Switching between input fields is slow and frustrating
+
 v.1.0:
     - Added Tutorial Menu
+    - Added Main Menu
     - Added 'Jetboat Charger' enemy
-    - Added 'Cruiser Charger' enemy
-    - Added 'Mothership Charger' enemy
+    - Added Pausing ability
     BUGS:
         - Velocity of ships varies with screen size
         - Shadow does not scale with screen size in tutorial popup
@@ -41,11 +57,12 @@ PLANNED FEATURES:
     - Add missile lifespan as a way for the user to prevent the missile from crashing back into turret if the equation
       causes the curve to return to origin
     - Add waves to the ocean /\/\/\ O_o
-    - Add Pausing ability
     - Add local high score saving and a leader board with dates of each of the top 10 scores achieved
     - Add Chat boxes on levels which appear as tutorial tips (Make it a class that gets integrated into the level)
     - Add Endless feature
     - Add credits
+    - Add precise laser mode (No explosion radius)
+    - Add vertical hitbox offset (For buoy and more)
 
 
 

@@ -12,7 +12,8 @@ FRICTION = 0.994
 def convert():
     global TURRET_IMAGE, OCEAN_IMAGE, ISLAND_IMAGE, FIELD_IMAGE, CALIBRATE_IMAGE, EXPLOSION_IMAGE, JET_CHARGER_IMAGE, \
         TUT_1_IMG, TUT_2_IMG, TUT_3_IMG, TUT_4_IMG, TUT_5_IMG, TUT_6_IMG, TUT_7_IMG, NEXT_BUTTON, SKIP_BUTTON, \
-        YES_BUTTON, NO_BUTTON, BACK_BUTTON, LOGO_IMAGE, TUTORIAL_BUTTON, QUIT_BUTTON, LEVELS_BUTTON
+        YES_BUTTON, NO_BUTTON, BACK_BUTTON, LOGO_IMAGE, TUTORIAL_BUTTON, QUIT_BUTTON, LEVELS_BUTTON, LOCK_IMAGE, \
+        START_BAR_IMAGE, START_BUTTON, GAMEOVER_IMAGE, LEVEL_COMPLETE_IMAGE, MENU_BUTTON, BUOY_IMAGE
 
     TURRET_IMAGE = TURRET_IMAGE.convert_alpha()
     OCEAN_IMAGE = OCEAN_IMAGE.convert_alpha()
@@ -37,6 +38,13 @@ def convert():
     TUTORIAL_BUTTON = TUTORIAL_BUTTON.convert_alpha()
     QUIT_BUTTON = QUIT_BUTTON.convert_alpha()
     LEVELS_BUTTON = LEVELS_BUTTON.convert_alpha()
+    LOCK_IMAGE = LOCK_IMAGE.convert_alpha()
+    START_BAR_IMAGE = START_BAR_IMAGE.convert_alpha()
+    START_BUTTON = START_BUTTON.convert_alpha()
+    GAMEOVER_IMAGE = GAMEOVER_IMAGE.convert_alpha()
+    LEVEL_COMPLETE_IMAGE = LEVEL_COMPLETE_IMAGE.convert_alpha()
+    MENU_BUTTON = MENU_BUTTON.convert_alpha()
+    BUOY_IMAGE = BUOY_IMAGE.convert_alpha()
 
 
 # Creates a glow light to be drawn under the units when selected
@@ -71,12 +79,18 @@ def blur_surface(surf, radius):
 
 # Scales a set of coordinates to the current screen size based on a divisor factor
 def cscale(*coordinate, divisor=900):
-    return tuple([int(coordinate[x] / divisor * SCREEN_SIZE[x % 2]) for x in range(len(coordinate))])
+    if len(coordinate) > 1:
+        return tuple([int(coordinate[x] / divisor * SCREEN_SIZE[x % 2]) for x in range(len(coordinate))])
+    else:
+        return int(coordinate[0] / divisor * SCREEN_SIZE[0])
 
 
 # Scales a set of coordinates to the current screen size based on a divisor factor. Doesn't return integers
-def posscale(coordinate, divisor):
-    return tuple([coordinate[x] / divisor * SCREEN_SIZE[x] for x in range(len(coordinate))])
+def posscale(*coordinate, divisor=900):
+    if len(coordinate) > 1:
+        return tuple([coordinate[x] / divisor * SCREEN_SIZE[x] for x in range(len(coordinate))])
+    else:
+        return coordinate[0] / divisor * SCREEN_SIZE[0]
 
 
 def get_pos_from_angle_and_radius(origin, angle, radius):
@@ -98,6 +112,11 @@ ISLAND_IMAGE = pygame.transform.scale(pygame.image.load('assets/island.png'), (i
 FIELD_IMAGE = pygame.image.load("assets/field.png")
 CALIBRATE_IMAGE = pygame.image.load("assets/CalibrateButton.png")
 EXPLOSION_IMAGE = pygame.transform.scale(pygame.image.load("assets/explosion.png"), (int(SCREEN_SIZE[0] / .9), int(SCREEN_SIZE[1] / .9)))
+LOCK_IMAGE = pygame.transform.scale(pygame.image.load("assets/lock_icon.png"), cscale(50, 50))
+START_BAR_IMAGE = pygame.transform.scale(pygame.image.load("assets/Start_Bar.png"), cscale(900, 40))
+GAMEOVER_IMAGE = pygame.transform.scale(pygame.image.load("assets/gameover.png"), cscale(300, 45))
+LEVEL_COMPLETE_IMAGE = pygame.transform.scale(pygame.image.load("assets/lvl_comp.png"), cscale(300, 45))
+BUOY_IMAGE = pygame.transform.scale(pygame.image.load("assets/Buoy.png"), cscale(40, 78))
 
 NEXT_BUTTON = pygame.image.load("assets/NextButton.png")
 SKIP_BUTTON = pygame.image.load("assets/SkipButton.png")
@@ -107,8 +126,10 @@ TUTORIAL_BUTTON = pygame.image.load("assets/Tutorial_Button.png")
 QUIT_BUTTON = pygame.image.load("assets/Quit_Button.png")
 NO_BUTTON = pygame.image.load("assets/No_Button.png")
 YES_BUTTON = pygame.image.load("assets/Yes_Button.png")
+START_BUTTON = pygame.image.load("assets/Start_Button.png")
+MENU_BUTTON = pygame.image.load("assets/Menu_Button.png")
 
-LOGO_IMAGE = pygame.transform.scale(pygame.image.load("assets/Logo.png"), cscale(900, 184))
+LOGO_IMAGE = pygame.transform.scale(pygame.image.load("assets/Logo.png"), cscale(845, 184))
 # Enemy Ships
 JET_CHARGER_IMAGE = pygame.transform.scale(pygame.image.load("assets/JetShip_NoGun.png"), (int((300 / 2800) * SCREEN_SIZE[0]), int((145 / 2800) * SCREEN_SIZE[0])))
 # Tutorial pages
@@ -125,3 +146,4 @@ HELVETICA_FONT = pygame.font.SysFont("Helvetica", int(0.03 * SCREEN_SIZE[1]))
 TIMES_FONT = pygame.font.SysFont("Times New Roman", int(0.02 * SCREEN_SIZE[1]))
 COURIER_FONT = pygame.font.SysFont("Courier New Regular", int(0.02 * SCREEN_SIZE[1]))
 BIGBOI_FONT = pygame.font.SysFont("Comic Sans", int(0.05 * SCREEN_SIZE[1]))
+VERY_BIGBOI_FONT = pygame.font.SysFont("Comic Sans", int(0.1 * SCREEN_SIZE[1]))

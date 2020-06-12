@@ -7,13 +7,14 @@ import Sprite
 from PIL import Image, ImageFilter
 import random
 import copy
+import json
 
 
 # This class manages the entire game. Manages level selection, tutorial screens, etc
 class Menu:
     def __init__(self):
         # Game object which runs the actual game
-        self.GAME = Game.Game()
+        self.GAME = None
 
         # String state of menu. Determines what the menu displays
         self.menu_state = "tutor"
@@ -82,11 +83,48 @@ class Menu:
         # 0 = main, 1 = levels
         self.menu_substate = 0
 
+        # Substate 1 (Levels)
+        self.levels = []
+        with open("levels.json", "r") as file:
+            self.levels = json.load(file)
+        self.comleted_levels = [False for x in range(len(self.levels))]
+
+        self.buttons = self.generate_buttons()
+
+    def generate_buttons(self):
+        # Creates buttons for each of the levels
+        pos = [250, 250]
+
+        buttons = []
+
+        for level in self.levels:
+            buttons.append(Button.Button(Constants.cscale(pos[0] + 10, pos[1] + 10), Constants.cscale(80, 50), None,
+                                         True, fill_color=((level["id"] - 1) / len(self.levels) * 255, 140, 200),
+                                         text=str(level["id"]), border_thickness=6, font=Constants.BIGBOI_FONT,
+                                         text_color=((level["id"] - 1) / len(self.levels) * 255, 0, 100)))
+
+            pos[0] += 100
+            if pos[0] >= 850:
+                pos[0] = 250
+                pos[1] += 70
+
+        return buttons
+
     def run_menu(self, screen):
         if self.menu_state == "tutor":
             self.run_tutorial(screen)
         elif self.menu_state == "game":
             self.GAME.run_game(screen)
+            if self.GAME.end_game:
+                self.start_game(self.levels[self.GAME.json["id"] - 1])
+            elif self.GAME.set_complete:
+                self.comleted_levels[self.GAME.json["id"] - 1] = True
+                if len(self.levels) >= self.GAME.json["id"] + 1:
+                    self.start_game(self.levels[self.GAME.json["id"]])
+                else:
+                    self.menu_state = "main"
+            elif self.GAME.exit_level:
+                self.menu_state = "main"
         elif self.menu_state == "main":
             self.run_main_menu(screen)
 
@@ -141,6 +179,7 @@ class Menu:
         rect.center = Constants.cscale(450, 100)
         screen.blit(Constants.LOGO_IMAGE, rect)
 
+        # Menu substates (levels, main menu)
         if self.menu_substate == 0:
             self.levels_button.is_hover(pygame.mouse.get_pos())
             self.quit_button.is_hover(pygame.mouse.get_pos())
@@ -162,10 +201,34 @@ class Menu:
             self.back_button2.is_hover(pygame.mouse.get_pos())
             self.back_button2.draw(screen)
 
+            # Draws level buttons and
+            for idx, bttn in enumerate(self.buttons):
+                bttn.is_hover(pygame.mouse.get_pos())
+                bttn.draw(screen)
+
+                if not self.levels[idx]["id"] == 1 and not self.comleted_levels[idx - 1]:
+                        lock_rect = Constants.LOCK_IMAGE.get_rect()
+                        lock_rect.center = bttn.button_rect.center
+                        screen.blit(Constants.LOCK_IMAGE, lock_rect)
+
             for event in Globe.events:
                 if event.type == pygame.MOUSEBUTTONUP:
                     if self.back_button2.is_clicked(event.pos):
                         self.menu_substate = 0
+
+                    # checks button events
+                    for bttn_idx in range(len(self.buttons)):
+                        if self.buttons[bttn_idx].is_clicked(event.pos):
+                            if bttn_idx == 0:
+                                # Start game with the specified level
+                                self.start_game(self.levels[bttn_idx])
+                            elif self.comleted_levels[bttn_idx - 1]:
+                                # Start game with the specified level
+                                self.start_game(self.levels[bttn_idx])
+
+    def start_game(self, json):
+        self.GAME = Game.Game(json)
+        self.menu_state = "game"
 
     def run_tutorial(self, screen):
         # 1 time instantiation

@@ -20,3 +20,5 @@ except Exception as e:
 
     print()
     input("press enter to continue")
+
+print("The script has finished. Press enter to close this window")

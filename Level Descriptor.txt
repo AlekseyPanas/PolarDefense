@@ -1,0 +1,4 @@
+Read this to understand level creation details:
+
+- All coordinates/sizes entered in the levels.json file are scaled using 900x900 screen size as a reference
+- The level id must be unique. It determines the level's order (ie Level 1, 2, 3, etc)

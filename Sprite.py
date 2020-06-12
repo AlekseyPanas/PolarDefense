@@ -33,6 +33,55 @@ class Object:
 
 
 '''
+INFLATE SURFACE CLASS
+```````````````````````````````````````
+```````````````````````````````````````
+```````````````````````````````````````
+```````````````````````````````````````
+```````````````````````````````````````
+```````````````````````````````````````
+```````````````````````````````````````
+'''
+
+
+# Takes a surface along with 2 scale factors (ie. .3, 1.5, 2, etc)
+# Uses the scale factors combined with the time to make the object grow on screen over time
+class InflateSurface(Object):
+    def __init__(self, lifetime, z_order, tags, surface, start_scale, stop_scale, scale_time, pos):
+        super().__init__(lifetime, z_order, tags)
+
+        self.surface_rect = surface.get_rect()
+
+        self.pos = pos
+
+        self.start_scale = (self.surface_rect.w * start_scale, self.surface_rect.h * start_scale)
+        self.stop_scale = (self.surface_rect.w * stop_scale, self.surface_rect.h * stop_scale)
+        self.scale_time = scale_time
+        self.current_scale = list(copy.copy(self.start_scale))
+        self.scale_increment = ((self.stop_scale[0] - self.start_scale[0]) / self.scale_time,
+                                (self.stop_scale[1] - self.start_scale[1]) / self.scale_time)
+
+        self.surface = pygame.Surface(self.surface_rect.size, pygame.SRCALPHA, 32)
+        self.surface.blit(surface, (0, 0))
+
+    def run_sprite(self, screen, update_lock):
+        if not update_lock:
+            self.update()
+        self.draw(screen)
+
+    def update(self):
+        if self.current_scale[0] < self.stop_scale[0]:
+            self.current_scale[0] += self.scale_increment[0]
+            self.current_scale[1] += self.scale_increment[1]
+
+    def draw(self, screen):
+        new_surf = pygame.transform.scale(self.surface, [int(x) for x in self.current_scale])
+        rect = new_surf.get_rect()
+        rect.center = self.pos
+        screen.blit(new_surf, rect)
+
+
+'''
 ANIMATION CLASS
 ```````````````````````````````````````
 ```````````````````````````````````````
@@ -359,7 +408,7 @@ ENEMY CLASS
 
 
 class Enemy(Object):
-    def __init__(self, lifetime, z_order, tags, image, angle, pos, velocity, hitboxes, large_hitbox, health):
+    def __init__(self, lifetime, z_order, tags, image, angle, pos, velocity, accel, hitboxes, large_hitbox, health):
         super().__init__(lifetime, z_order, tags)
 
         self.tags.add("enemy")
@@ -375,9 +424,18 @@ class Enemy(Object):
         self.angle_velocity = 0
         self.angle_acceleration = 0
 
+        # The acceleration given by the engine (strength)
+        self.engine_acceleration = accel
+        # Is the engine currently active
+        self.engine_active = False
+
         # The velocity parameter is given as a single number which is then split into x and y
-        self.velocity = [velocity * math.cos(math.radians(self.angle)), -velocity * math.sin(math.radians(self.angle))]
-        self.pos = list(pos)
+        self.velocity = []
+        self.set_velocity(velocity)
+
+        self.pos = []
+        self.set_pos(pos)
+
         self.acceleration = [0, 0]
 
         # a set of tuples of hitboxes which represent the hitbox's offset from the center and its radius (offset, rad)
@@ -402,6 +460,17 @@ class Enemy(Object):
     def run_sprite(self, screen, update_lock):
         pass
 
+    def set_pos(self, pos):
+        self.pos = list(Constants.posscale(pos[0], pos[1]))
+
+    def set_velocity(self, vel):
+        self.velocity = [Constants.posscale(vel) * math.cos(math.radians(self.angle)),
+                         -Constants.posscale(vel) * math.sin(math.radians(self.angle))]
+
+    def set_acceleration(self, accel):
+        self.acceleration = [Constants.posscale(accel) * math.cos(math.radians(self.angle)),
+                             -Constants.posscale(accel) * math.sin(math.radians(self.angle))]
+
     def draw_ship(self, screen):
         self.image, self.image_rect = Object.rotate(self.image_save, self.image_rect, self.angle)
 
@@ -415,7 +484,7 @@ class Enemy(Object):
         screen.blit(rendered_text, (self.image_rect.left + .3 * self.image_rect.w, self.image_rect.top + self.image_rect.h))
 
         # Draw debug circles of all the hitboxes
-        # pygame.draw.circle(screen, (0, 255, 0), self.image_rect.center, int(self.large_hitbox), 1)
+        pygame.draw.circle(screen, (0, 255, 0), self.image_rect.center, int(self.large_hitbox), 1)
         # if self.hitboxes is not None:
         #     for box in self.hitboxes:
         #         pygame.draw.circle(screen, (255, 0, 0), self.get_hitbox_pos(box), box[1], 1)
@@ -440,6 +509,15 @@ class Enemy(Object):
             self.kill = True
 
     def update(self):
+        if self.health <= 0:
+            self.engine_active = False
+
+        # Sets acceleration based on whether the engine is active or not
+        if self.engine_active:
+            self.set_acceleration(self.engine_acceleration)
+        else:
+            self.acceleration = [0, 0]
+
         # Angular calculations
         self.angle_velocity += self.angle_acceleration
         self.angle += self.angle_velocity
@@ -499,10 +577,72 @@ JETSHIP CHARGER CLASS
 
 
 class JetshipCharger(Enemy):
-    def __init__(self, lifetime, z_order, tags, image, angle, pos, velocity, health):
-        super().__init__(lifetime, z_order, tags, image, angle, pos, velocity, None, (15 / 340) * Constants.SCREEN_SIZE[0], health)
+    def __init__(self, lifetime, z_order, tags, image, angle, pos, velocity, acceleration, health):
+        super().__init__(lifetime, z_order, tags, image, angle, pos, velocity, acceleration, None, (15 / 340) * Constants.SCREEN_SIZE[0], health)
+
+        self.engine_active = True
 
     def run_sprite(self, screen, update_lock):
         if not update_lock:
             self.update()
         self.draw_ship(screen)
+
+
+class Buoy(Enemy):
+    def __init__(self, lifetime, z_order, tags, pos, health):
+        super().__init__(lifetime, z_order, tags, Constants.BUOY_IMAGE, 0, pos, 0, 0, None, Constants.posscale(40), health)
+
+        # Used for sine function for waving
+        self.time = 0
+
+        self.original_rect = copy.deepcopy(self.image_rect)
+        self.original_center = copy.copy(self.image_rect.center)
+
+        self.tilt_angle = 5
+
+    def run_sprite(self, screen, update_lock):
+        if not update_lock:
+            self.update()
+            self.time += 1
+        self.draw_ship(screen)
+
+    def die(self):
+        if not self.init_dead:
+            self.init_dead = True
+            self.tilt_angle = 50
+
+        self.tilt_angle -= .08
+        self.opacity -= 1.5
+
+        if self.opacity <= 0:
+            self.kill = True
+
+    def draw_ship(self, screen):
+        #self.image, self.image_rect = Object.rotate(self.image_save, self.image_rect, self.angle)
+        r = self.original_rect.h / 2
+        rotate_point = (self.original_center[0], self.original_center[1] + self.original_rect.h / 2)
+        angle = (self.tilt_angle * math.sin(.05 * self.time) + 90)
+        center = (rotate_point[0] + r * math.cos(math.radians(angle)), rotate_point[1] - r * math.sin(math.radians(angle)))
+        self.image = pygame.transform.rotate(self.image_save, self.tilt_angle * math.sin(.05 * self.time))
+        self.image_rect = self.image.get_rect(center=center)
+
+        if self.health <= 0:
+            self.image.fill((255, 255, 255, self.opacity if self.opacity >= 0 else 0), None, pygame.BLEND_RGBA_MULT)
+
+        screen.blit(self.image, self.image_rect)
+
+        # DEBUG SHAPES
+        #pygame.draw.circle(screen, (0, 255, 0), [int(x) for x in rotate_point], 3)
+        #pygame.draw.circle(screen, (0, 0, 255), self.image_rect.center, 3)
+        #pygame.draw.rect(screen, (0, 255, 0), self.image_rect, 1)
+
+        # Draws rectangular Coordinates
+        rendered_text = Constants.COURIER_FONT.render(str(self.display_coords), False, (150, 150, 255))
+        screen.blit(rendered_text,
+                    (self.image_rect.left + .3 * self.image_rect.w, self.image_rect.top + self.image_rect.h))
+
+        # Draw debug circles of all the hitboxes
+        # pygame.draw.circle(screen, (0, 255, 0), self.image_rect.center, int(self.large_hitbox), 1)
+        # if self.hitboxes is not None:
+        #     for box in self.hitboxes:
+        #         pygame.draw.circle(screen, (255, 0, 0), self.get_hitbox_pos(box), box[1], 1)
