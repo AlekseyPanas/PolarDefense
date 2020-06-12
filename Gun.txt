@@ -44,7 +44,8 @@ PLANNED FEATURES:
     - Add Pausing ability
     - Add local high score saving and a leader board with dates of each of the top 10 scores achieved
     - Add Chat boxes on levels which appear as tutorial tips (Make it a class that gets integrated into the level)
-    - Add level features and json reading
+    - Add Endless feature
+    - Add credits
 
 
 

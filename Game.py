@@ -1,6 +1,8 @@
 import Sprite
 import Constants
 import random
+import Globe
+import pygame
 
 
 class Game:
@@ -11,6 +13,11 @@ class Game:
         # Since you shouldn't add sprites during iteration, they are queued to be added at the end of the loop
         self.sprite_queue = []
 
+        # Pauses game
+        self.update_lock = False
+        # Similar to update lock but displays a message
+        self.paused = False
+
         self.add_sprite(Sprite.Turret(None, 999, {}, (Constants.SCREEN_SIZE[0] / 2, Constants.SCREEN_SIZE[1] / 2),
                                       (0, int(0.022 * Constants.SCREEN_SIZE[1])), 80, 40))
 
@@ -20,12 +27,22 @@ class Game:
     def add_sprite(self, sprite):
         self.sprite_queue.append(sprite)
 
+    def event_handler(self):
+        for event in Globe.events:
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_p:
+                    # Pauses Game
+                    self.update_lock = True if not self.update_lock else False
+                    self.paused = True if not self.update_lock else False
+
     def run_game(self, screen):
         Game.draw_background(screen)
 
+        self.event_handler()
+
         # Runs sprites
         for sprite in self.SPRITES:
-            sprite.run_sprite(screen)
+            sprite.run_sprite(screen, self.update_lock)
 
             # Deletes killed sprites
             if sprite.kill:

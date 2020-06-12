@@ -3,6 +3,10 @@ import Constants
 import Button
 import pygame
 import Globe
+import Sprite
+from PIL import Image, ImageFilter
+import random
+import copy
 
 
 # This class manages the entire game. Manages level selection, tutorial screens, etc
@@ -42,13 +46,49 @@ class Menu:
         pygame.draw.rect(self.popup_surface, (255, 0, 255, 250), Constants.cscale(0, 0, 500, 300))
         pygame.draw.rect(self.popup_surface, (255, 255, 255, 150), Constants.cscale(10, 10, 480, 280))
 
+        # TRUMPS WALL:
+        # ============================
+        # ============================
+
+        # Main Menu variables
+        # Blurred images
+        self.ocean = Constants.blur_surface(copy.copy(Constants.OCEAN_IMAGE), 7).convert_alpha()
+        self.island = Constants.blur_surface(copy.copy(Constants.ISLAND_IMAGE), 5).convert_alpha()
+        self.explosion = Constants.blur_surface(copy.copy(Constants.EXPLOSION_IMAGE), 5).convert_alpha()
+        self.turret = Constants.blur_surface(copy.copy(Constants.TURRET_IMAGE), 3).convert_alpha()
+
+        self.turret = Sprite.Turret(None, 999, {}, (Constants.SCREEN_SIZE[0] / 2, Constants.SCREEN_SIZE[1] / 2),
+                                    (0, int(0.022 * Constants.SCREEN_SIZE[1])), 80, 100, display_mode=True,
+                                    explosion_sheet=self.explosion, turret_image=self.turret)
+        self.menu_sprites = []
+        self.menu_remove_sprites = []
+
+        # Sets island to be drawn at center
+        self.island_rect = Constants.ISLAND_IMAGE.get_rect()
+        self.island_rect.center = Constants.cscale(450, 450)
+
+        # The delay between shots in the menu and the counter for the delay
+        self.shoot_counter = None
+        self.shoot_delay = None
+
+        # Menu Buttons
+        self.levels_button = Button.Button(Constants.cscale(50, 300), Constants.cscale(200, 100), Constants.LEVELS_BUTTON)
+        self.quit_button = Button.Button(Constants.cscale(350, 700), Constants.cscale(200, 100), Constants.QUIT_BUTTON)
+        self.tutorial_button = Button.Button(Constants.cscale(650, 300), Constants.cscale(200, 100), Constants.TUTORIAL_BUTTON)
+
+        self.back_button2 = Button.Button(Constants.cscale(50, 250), Constants.cscale(100, 50), Constants.BACK_BUTTON)
+
+        # Substates of the main menu
+        # 0 = main, 1 = levels
+        self.menu_substate = 0
+
     def run_menu(self, screen):
         if self.menu_state == "tutor":
             self.run_tutorial(screen)
         elif self.menu_state == "game":
             self.GAME.run_game(screen)
         elif self.menu_state == "main":
-            screen.fill((0, 255, 0))
+            self.run_main_menu(screen)
 
         self.check_vars()
 
@@ -56,6 +96,76 @@ class Menu:
         for var in self.init_vars:
             if not var == self.menu_state:
                 self.init_vars[var] = False
+
+    def run_main_menu(self, screen):
+        # 1 time instantiation
+        if not self.init_vars["main"]:
+            self.shoot_counter = 0
+            self.shoot_delay = 100
+            self.menu_substate = 0
+            self.menu_sprites = []
+            self.menu_remove_sprites = []
+            self.init_vars["main"] = True
+
+        # Run Blurred game
+        self.shoot_counter += 1
+        if self.shoot_counter >= self.shoot_delay:
+            self.turret.radius = random.randint(200, 450)
+            self.turret.shoot()
+            self.shoot_counter = 0
+            self.shoot_delay = random.randint(100, 300)
+            self.turret.desired_angle = random.randint(-400, 400)
+
+        # Draw Blurred image
+        screen.blit(self.ocean, (0, 0))
+        screen.blit(self.island, self.island_rect)
+
+        for sprite in self.menu_sprites:
+            if "Laser" in sprite.tags:
+                sprite.color = (100, 90, 150)
+            sprite.run_sprite(screen, False)
+            sprite.lifetime -= 1
+            if sprite.lifetime <= 0:
+                self.menu_remove_sprites.append(sprite)
+
+        for sprite in self.menu_remove_sprites:
+            if sprite in self.menu_sprites:
+                self.menu_sprites.remove(sprite)
+        self.menu_remove_sprites = []
+
+        self.turret.run_sprite(screen, False)
+
+        ##### The actual menu
+        ### ================
+        rect = Constants.LOGO_IMAGE.get_rect()
+        rect.center = Constants.cscale(450, 100)
+        screen.blit(Constants.LOGO_IMAGE, rect)
+
+        if self.menu_substate == 0:
+            self.levels_button.is_hover(pygame.mouse.get_pos())
+            self.quit_button.is_hover(pygame.mouse.get_pos())
+            self.tutorial_button.is_hover(pygame.mouse.get_pos())
+
+            self.levels_button.draw(screen)
+            self.quit_button.draw(screen)
+            self.tutorial_button.draw(screen)
+
+            for event in Globe.events:
+                if event.type == pygame.MOUSEBUTTONUP:
+                    if self.levels_button.is_clicked(event.pos):
+                        self.menu_substate = 1
+                    if self.quit_button.is_clicked(event.pos):
+                        Globe.running = False
+                    if self.tutorial_button.is_clicked(event.pos):
+                        self.menu_state = "tutor"
+        else:
+            self.back_button2.is_hover(pygame.mouse.get_pos())
+            self.back_button2.draw(screen)
+
+            for event in Globe.events:
+                if event.type == pygame.MOUSEBUTTONUP:
+                    if self.back_button2.is_clicked(event.pos):
+                        self.menu_substate = 0
 
     def run_tutorial(self, screen):
         # 1 time instantiation
@@ -79,7 +189,6 @@ class Menu:
                         self.page_index += 1
                         if self.page_index > len(self.pages) - 1:
                             self.menu_state = "main"
-                            print("Hay")
                             return
                     elif self.back_button.is_clicked(event.pos):
                         self.page_index -= 1

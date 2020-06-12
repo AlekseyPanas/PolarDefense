@@ -28,7 +28,7 @@ class Object:
         rect = new_image.get_rect(center=rect.center)
         return new_image, rect
 
-    def run_sprite(self, screen):
+    def run_sprite(self, screen, update_lock):
         pass
 
 
@@ -79,16 +79,17 @@ class Animation(Object):
         # Total # of frames in sheet
         self.frame_count = frame_count
 
-        # Surface onto which the animation will be drawn
-        self.surface = pygame.Surface((self.frame_width, self.frame_height), pygame.SRCALPHA, 32)
-        # Calls update once to blit the first frame
-        self.update()
-
         # Refers to another object to which this one is bound. The explosion will follow the binder object
         self.binder = binder
 
-    def run_sprite(self, screen):
-        self.update()
+        # Surface onto which the animation will be drawn
+        self.surface = pygame.Surface((self.frame_width, self.frame_height), pygame.SRCALPHA, 32)
+        # Calls update once to blit the first frame and resets the tick
+        self.surface.blit(self.sheet, (0, 0))
+
+    def run_sprite(self, screen, update_lock):
+        if not update_lock:
+            self.update()
         self.draw_sprite(screen)
 
     def update(self):
@@ -96,7 +97,7 @@ class Animation(Object):
         if self.binder is not None:
             self.pos = self.binder.pos
 
-        # Draws animation
+        # Updates
         if self.tick % self.animation_speed == 0:
             # Calculates the sheet position of frame
             horizontal_pos = self.frame % self.sheet_frames_w
@@ -133,7 +134,7 @@ TURRET LASER CLASS
 
 
 class TurretLaser(Object):
-    def __init__(self, lifetime, z_order, tags, origin, angle, radius):
+    def __init__(self, lifetime, z_order, tags, origin, angle, radius, color=(255, 0, 0)):
         super().__init__(lifetime if lifetime is not None else 30, z_order, tags)
 
         # Saves the total lifetime so it can be referenced later
@@ -149,12 +150,23 @@ class TurretLaser(Object):
         # Lazy mode. Takes a surface the size of the entire screen
         self.surface = pygame.Surface(Constants.SCREEN_SIZE, pygame.SRCALPHA)
 
-    def run_sprite(self, screen):
+        self.tags.add("Laser")
+
+        self.color = color
+
+    def run_sprite(self, screen, update_lock):
+        if not update_lock:
+            self.update()
+        self.draw(screen)
+
+    def update(self):
         # Uses the given angle, radius, and origin to draw a red laser line
         # The laser line has an opacity which is proportionally based on the lifetime
-        pygame.draw.line(self.surface, (255, 0, 0, (self.lifetime * 255) / self.lifetime_save), self.origin,
-                         Constants.get_pos_from_angle_and_radius(self.origin, self.angle, self.radius), int((6/900) * Constants.SCREEN_SIZE[0]))
+        pygame.draw.line(self.surface, (self.color[0], self.color[1], self.color[2], (self.lifetime * 255) / self.lifetime_save), self.origin,
+                         Constants.get_pos_from_angle_and_radius(self.origin, self.angle, self.radius),
+                         int((6 / 900) * Constants.SCREEN_SIZE[0]))
 
+    def draw(self, screen):
         screen.blit(self.surface, (0, 0))
 
 
@@ -171,13 +183,16 @@ TURRET CLASS
 
 
 class Turret(Object):
-    def __init__(self, lifetime, z_order, tags, turret_center, typefield_top_left, calibrate_tick_duration, recoil):
+    def __init__(self, lifetime, z_order, tags, turret_center, typefield_top_left, calibrate_tick_duration, recoil,
+                 display_mode=False, explosion_sheet=Constants.EXPLOSION_IMAGE, explosion_sheet_frames=74,
+                 explosion_sheet_dims=(9,9), turret_image=Constants.TURRET_IMAGE):
         super().__init__(lifetime, z_order, tags)
 
         # The center of the turret
         self.center = turret_center
 
-        self.image = Constants.TURRET_IMAGE
+        self.image_save = turret_image
+        self.image = copy.copy(turret_image)
         self.image_rect = self.image.get_rect()
         self.image_rect.center = self.center
 
@@ -215,6 +230,14 @@ class Turret(Object):
         # When angle reaches close enough to the desired angle, this determines when the angles get set to each other
         self.fixated_angle = False
 
+        # Draws the turret without the input fields and buttons
+        self.display_mode = display_mode
+
+        # Used for custom explosion sprite sheets
+        self.explosion_sheet = explosion_sheet
+        self.explosion_sheet_frames = explosion_sheet_frames
+        self.explosion_sheet_dims = explosion_sheet_dims
+
     def press_calibrate(self):
         self.calibrate_button.button_state = "pressed"
         self.calib_count += self.calib_duration
@@ -231,20 +254,22 @@ class Turret(Object):
             rad = self.radius_field.text
         self.radius = float(rad)
 
-    def run_sprite(self, screen):
-        self.update()
+    def run_sprite(self, screen, update_lock):
+        if not update_lock:
+            self.update()
+        self.draw(screen)
+
+    def draw(self, screen):
         self.draw_turret(screen)
 
-        self.angle_field.draw_handler(screen)
-        self.radius_field.draw_handler(screen)
+        if not self.display_mode:
+            self.angle_field.draw_handler(screen)
+            self.radius_field.draw_handler(screen)
 
-        self.event_handler()
+            screen.blit(self.angle_field_label, (self.angle_field.pos[0], 0))
+            screen.blit(self.radius_field_label, (self.radius_field.pos[0], 0))
 
-        screen.blit(self.angle_field_label, (self.angle_field.pos[0], 0))
-        screen.blit(self.radius_field_label, (self.radius_field.pos[0], 0))
-
-        self.calibrate_button.is_hover(pygame.mouse.get_pos())
-        self.calibrate_button.draw(screen)
+            self.calibrate_button.draw(screen)
 
     def event_handler(self):
         for event in Globe.events:
@@ -260,23 +285,33 @@ class Turret(Object):
                 if event.key == pygame.K_RETURN and self.calib_count == 0:
                     self.press_calibrate()
                 if event.key == pygame.K_SPACE and int(self.angle) == int(self.desired_angle):
-                    # Ensures the radius stays within the minimum value
-                    self.radius = self.radius if self.radius >= self.radius_field.minimum_value else self.radius_field.minimum_value
+                    self.shoot()
 
-                    collide_point = Constants.get_pos_from_angle_and_radius(self.image_rect.center, self.angle, self.radius)
+    def shoot(self):
+        # Ensures the radius stays within the minimum value
+        self.radius = self.radius if self.radius >= self.radius_field.minimum_value else self.radius_field.minimum_value
 
-                    Globe.MENU.GAME.add_sprite(TurretLaser(None, 0, {}, self.image_rect.center, self.angle, self.radius))
-                    Globe.MENU.GAME.add_sprite(Animation(-1, 5, {}, (9, 9), 2, Constants.EXPLOSION_IMAGE, collide_point, 74))
+        collide_point = Constants.get_pos_from_angle_and_radius(self.image_rect.center, self.angle, self.radius)
 
-                    # Adds recoil
-                    self.desired_angle += random.randint(-self.recoil, self.recoil)
+        if not self.display_mode:
+            Globe.MENU.GAME.add_sprite(TurretLaser(None, 0, {}, self.image_rect.center, self.angle, self.radius))
+            Globe.MENU.GAME.add_sprite(Animation(-1, 5, {}, self.explosion_sheet_dims, 2, self.explosion_sheet,
+                                                     collide_point, self.explosion_sheet_frames))
+        else:
+            Globe.MENU.menu_sprites.append(TurretLaser(None, 0, {}, self.image_rect.center, self.angle, self.radius))
+            Globe.MENU.menu_sprites.append(Animation(-1, 5, {}, self.explosion_sheet_dims, 2, self.explosion_sheet,
+                                                     collide_point, self.explosion_sheet_frames))
 
-                    # Collision Detection
-                    for sprite in Globe.MENU.GAME.SPRITES:
-                        if "enemy" in sprite.tags:
-                            # Checks for hits using the collide point and explosion radius
-                            if sprite.hit_check(collide_point, Constants.SCREEN_SIZE[0] / 15):
-                                sprite.health -= 1
+        # Adds recoil
+        self.desired_angle += random.randint(-self.recoil, self.recoil)
+
+        if not self.display_mode:
+            # Collision Detection
+            for sprite in Globe.MENU.GAME.SPRITES:
+                if "enemy" in sprite.tags:
+                    # Checks for hits using the collide point and explosion radius
+                    if sprite.hit_check(collide_point, Constants.SCREEN_SIZE[0] / 15):
+                        sprite.health -= 1
 
     def update(self):
         # MOUSE FOLLOW TEST
@@ -300,8 +335,13 @@ class Turret(Object):
             self.calibrate_button.button_state = "static"
             self.calib_count = 0
 
+        if not self.display_mode:
+            self.event_handler()
+
+        self.calibrate_button.is_hover(pygame.mouse.get_pos())
+
     def draw_turret(self, screen):
-        self.image, self.image_rect = Object.rotate(Constants.TURRET_IMAGE, self.image_rect, self.angle)
+        self.image, self.image_rect = Object.rotate(self.image_save, self.image_rect, self.angle)
 
         screen.blit(self.image, self.image_rect)
 
@@ -359,7 +399,7 @@ class Enemy(Object):
         # Rect.Coordinates to display
         self.display_coords = ()
 
-    def run_sprite(self, screen):
+    def run_sprite(self, screen, update_lock):
         pass
 
     def draw_ship(self, screen):
@@ -462,6 +502,7 @@ class JetshipCharger(Enemy):
     def __init__(self, lifetime, z_order, tags, image, angle, pos, velocity, health):
         super().__init__(lifetime, z_order, tags, image, angle, pos, velocity, None, (15 / 340) * Constants.SCREEN_SIZE[0], health)
 
-    def run_sprite(self, screen):
-        self.update()
+    def run_sprite(self, screen, update_lock):
+        if not update_lock:
+            self.update()
         self.draw_ship(screen)

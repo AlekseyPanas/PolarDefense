@@ -12,7 +12,7 @@ FRICTION = 0.994
 def convert():
     global TURRET_IMAGE, OCEAN_IMAGE, ISLAND_IMAGE, FIELD_IMAGE, CALIBRATE_IMAGE, EXPLOSION_IMAGE, JET_CHARGER_IMAGE, \
         TUT_1_IMG, TUT_2_IMG, TUT_3_IMG, TUT_4_IMG, TUT_5_IMG, TUT_6_IMG, TUT_7_IMG, NEXT_BUTTON, SKIP_BUTTON, \
-        YES_BUTTON, NO_BUTTON, BACK_BUTTON
+        YES_BUTTON, NO_BUTTON, BACK_BUTTON, LOGO_IMAGE, TUTORIAL_BUTTON, QUIT_BUTTON, LEVELS_BUTTON
 
     TURRET_IMAGE = TURRET_IMAGE.convert_alpha()
     OCEAN_IMAGE = OCEAN_IMAGE.convert_alpha()
@@ -33,6 +33,10 @@ def convert():
     BACK_BUTTON = BACK_BUTTON.convert_alpha()
     NO_BUTTON = NO_BUTTON.convert_alpha()
     YES_BUTTON = YES_BUTTON.convert_alpha()
+    LOGO_IMAGE = LOGO_IMAGE.convert_alpha()
+    TUTORIAL_BUTTON = TUTORIAL_BUTTON.convert_alpha()
+    QUIT_BUTTON = QUIT_BUTTON.convert_alpha()
+    LEVELS_BUTTON = LEVELS_BUTTON.convert_alpha()
 
 
 # Creates a glow light to be drawn under the units when selected
@@ -52,6 +56,16 @@ def create_shadow(size, color):
     # This is how you set the transparency of this surface if needed
     surface.fill((255, 255, 255, 200), None, pygame.BLEND_RGBA_MULT)
 
+    return surface
+
+
+def blur_surface(surf, radius):
+    # Blurs the rect surface
+    surface = Image.frombytes('RGBA', surf.get_size(),
+                              pygame.image.tostring(surf, 'RGBA', False)).filter(
+        ImageFilter.GaussianBlur(radius=radius))
+    surface = pygame.image.frombuffer(surface.tobytes(), surface.size,
+                                      surface.mode)
     return surface
 
 
@@ -79,7 +93,7 @@ def distance(a, b):
 
 # Image loading
 TURRET_IMAGE = pygame.transform.scale(pygame.image.load('assets/Turret.png'), (int((372/2700) * SCREEN_SIZE[0]), int((219/2700) * SCREEN_SIZE[1])))
-OCEAN_IMAGE = pygame.transform.scale(pygame.transform.scale(pygame.image.load('assets/Ocean.png'), SCREEN_SIZE), SCREEN_SIZE)
+OCEAN_IMAGE = pygame.transform.scale(pygame.image.load('assets/Ocean.png'), SCREEN_SIZE)
 ISLAND_IMAGE = pygame.transform.scale(pygame.image.load('assets/island.png'), (int((92/500) * SCREEN_SIZE[0]), int((66/500) * SCREEN_SIZE[1])))
 FIELD_IMAGE = pygame.image.load("assets/field.png")
 CALIBRATE_IMAGE = pygame.image.load("assets/CalibrateButton.png")
@@ -88,8 +102,13 @@ EXPLOSION_IMAGE = pygame.transform.scale(pygame.image.load("assets/explosion.png
 NEXT_BUTTON = pygame.image.load("assets/NextButton.png")
 SKIP_BUTTON = pygame.image.load("assets/SkipButton.png")
 BACK_BUTTON = pygame.image.load("assets/Back_Button.png")
+LEVELS_BUTTON = pygame.image.load("assets/Levels_Button.png")
+TUTORIAL_BUTTON = pygame.image.load("assets/Tutorial_Button.png")
+QUIT_BUTTON = pygame.image.load("assets/Quit_Button.png")
 NO_BUTTON = pygame.image.load("assets/No_Button.png")
 YES_BUTTON = pygame.image.load("assets/Yes_Button.png")
+
+LOGO_IMAGE = pygame.transform.scale(pygame.image.load("assets/Logo.png"), cscale(900, 184))
 # Enemy Ships
 JET_CHARGER_IMAGE = pygame.transform.scale(pygame.image.load("assets/JetShip_NoGun.png"), (int((300 / 2800) * SCREEN_SIZE[0]), int((145 / 2800) * SCREEN_SIZE[0])))
 # Tutorial pages
