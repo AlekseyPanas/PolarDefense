@@ -63,7 +63,7 @@ PLANNED FEATURES:
     - Add credits
     - Add precise laser mode (No explosion radius)
     - Add vertical hitbox offset (For buoy and more)
-
+    - Add screen size option selector
 
 
 ==========================

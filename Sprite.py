@@ -484,7 +484,7 @@ class Enemy(Object):
         screen.blit(rendered_text, (self.image_rect.left + .3 * self.image_rect.w, self.image_rect.top + self.image_rect.h))
 
         # Draw debug circles of all the hitboxes
-        pygame.draw.circle(screen, (0, 255, 0), self.image_rect.center, int(self.large_hitbox), 1)
+        # pygame.draw.circle(screen, (0, 255, 0), self.image_rect.center, int(self.large_hitbox), 1)
         # if self.hitboxes is not None:
         #     for box in self.hitboxes:
         #         pygame.draw.circle(screen, (255, 0, 0), self.get_hitbox_pos(box), box[1], 1)
