@@ -64,10 +64,13 @@ PLANNED FEATURES:
     - Add precise laser mode (No explosion radius)
     - Add vertical hitbox offset (For buoy and more)
     - Add screen size option selector
+	- Add ability to add custom ship paths in level json
+	- Add level editor
+	- Add trail behind boats
 
 
 ==========================
-AI Descriptions for ships:
+AI Descriptions for ships for endless mode:
 
 Jet (1 hp):
 	Chooses a radius around the turret and boats to it. Then proceeds to pick points on circle with that radius and move between them in straight lines while stopping to fire
