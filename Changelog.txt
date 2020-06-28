@@ -2,6 +2,14 @@ CHANGELOG:
 -------------=
 v(large_release).(small_fix)
 -------------=
+v1.3:
+    - Added trail behind boats
+    - Added screen size console input option on game launch
+    BUGS:
+        - Shadow does not scale with screen size in tutorial popup
+    ISSUES:
+        - Switching between input fields is slow and frustrating
+
 v.1.2:
     - Added Buoy animation
     BUGS:
@@ -45,6 +53,13 @@ v.0.1:
 /\/\/\/\/\/\/\/\
 PLANNED FEATURES:
 --------------=
+    - Add precise laser mode (No explosion radius)
+    - Add vertical hitbox offset (For buoy and more)
+    - Add waves to the ocean /\/\/\ O_o
+    - Add credits
+    - Add ability to add custom ship paths in level json
+    - Add auto selection for inputs and use tab to switch
+
     - Add Chat log to display various information such as error messages or kill feeds
     - Add shooting variants of each current enemy with unique AIs
     - Add path prediction for enemies so that enemies can prevent colliding (Use alternate thread
@@ -56,17 +71,12 @@ PLANNED FEATURES:
       to calculate the per pixel path of the ship which will store every pixel point on the path)
     - Add missile lifespan as a way for the user to prevent the missile from crashing back into turret if the equation
       causes the curve to return to origin
-    - Add waves to the ocean /\/\/\ O_o
-    - Add local high score saving and a leader board with dates of each of the top 10 scores achieved
-    - Add Chat boxes on levels which appear as tutorial tips (Make it a class that gets integrated into the level)
+
     - Add Endless feature
-    - Add credits
-    - Add precise laser mode (No explosion radius)
-    - Add vertical hitbox offset (For buoy and more)
-    - Add screen size option selector
-	- Add ability to add custom ship paths in level json
+    - Add local high score saving and a leader board with dates of each of the top 10 scores achieved
+
+    - Add Chat boxes on levels which appear as tutorial tips (Make it a class that gets integrated into the level)
 	- Add level editor
-	- Add trail behind boats
 
 
 ==========================

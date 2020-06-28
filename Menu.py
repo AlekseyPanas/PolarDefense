@@ -207,9 +207,9 @@ class Menu:
                 bttn.draw(screen)
 
                 if not self.levels[idx]["id"] == 1 and not self.comleted_levels[idx - 1]:
-                        lock_rect = Constants.LOCK_IMAGE.get_rect()
-                        lock_rect.center = bttn.button_rect.center
-                        screen.blit(Constants.LOCK_IMAGE, lock_rect)
+                    lock_rect = Constants.LOCK_IMAGE.get_rect()
+                    lock_rect.center = bttn.button_rect.center
+                    screen.blit(Constants.LOCK_IMAGE, lock_rect)
 
             for event in Globe.events:
                 if event.type == pygame.MOUSEBUTTONUP:

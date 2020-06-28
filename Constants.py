@@ -4,6 +4,16 @@ from PIL import Image, ImageFilter
 pygame.init()
 
 SCREEN_SIZE = (900, 900)
+valid = False
+while not valid:
+    SCREEN_SIZE = input("Please enter a single value screen size in pixels: ")
+    try:
+        SCREEN_SIZE = int(SCREEN_SIZE)
+        valid = True
+    except Exception:
+        print("Please enter a valid screen size")
+        valid = False
+SCREEN_SIZE = tuple([SCREEN_SIZE for x in range(2)])
 
 # Water friction for enemies
 FRICTION = 0.994

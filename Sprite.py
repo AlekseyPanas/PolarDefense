@@ -46,8 +46,10 @@ INFLATE SURFACE CLASS
 
 # Takes a surface along with 2 scale factors (ie. .3, 1.5, 2, etc)
 # Uses the scale factors combined with the time to make the object grow on screen over time
+# Includes additional option allowing the user to fade the object
 class InflateSurface(Object):
-    def __init__(self, lifetime, z_order, tags, surface, start_scale, stop_scale, scale_time, pos):
+    def __init__(self, lifetime, z_order, tags, surface, start_scale, stop_scale, scale_time, pos, fade=False,
+                 initial_opacity=255, delay_inflation=0):
         super().__init__(lifetime, z_order, tags)
 
         self.surface_rect = surface.get_rect()
@@ -64,20 +66,36 @@ class InflateSurface(Object):
         self.surface = pygame.Surface(self.surface_rect.size, pygame.SRCALPHA, 32)
         self.surface.blit(surface, (0, 0))
 
+        self.opacity = initial_opacity
+        self.fade_increment = (self.opacity + 1) / self.scale_time
+        self.fade = fade
+
+        # Delays inflation for a given amount of time
+        self.delay_inflation = delay_inflation
+
     def run_sprite(self, screen, update_lock):
         if not update_lock:
-            self.update()
+            if self.delay_inflation == 0:
+                self.update()
+            else:
+                self.delay_inflation -= 1
         self.draw(screen)
 
     def update(self):
         if self.current_scale[0] < self.stop_scale[0]:
             self.current_scale[0] += self.scale_increment[0]
             self.current_scale[1] += self.scale_increment[1]
+        if self.fade:
+            self.opacity -= self.fade_increment
 
     def draw(self, screen):
-        new_surf = pygame.transform.scale(self.surface, [int(x) for x in self.current_scale])
+        new_surf = pygame.transform.scale(self.surface, [int(x) for x in self.current_scale]).convert_alpha()
         rect = new_surf.get_rect()
         rect.center = self.pos
+
+        if self.fade:
+            new_surf.fill((255, 255, 255, self.opacity if self.opacity >= 0 else 0), None, pygame.BLEND_RGBA_MULT)
+
         screen.blit(new_surf, rect)
 
 
@@ -234,7 +252,7 @@ TURRET CLASS
 class Turret(Object):
     def __init__(self, lifetime, z_order, tags, turret_center, typefield_top_left, calibrate_tick_duration, recoil,
                  display_mode=False, explosion_sheet=Constants.EXPLOSION_IMAGE, explosion_sheet_frames=74,
-                 explosion_sheet_dims=(9,9), turret_image=Constants.TURRET_IMAGE):
+                 explosion_sheet_dims=(9, 9), turret_image=Constants.TURRET_IMAGE):
         super().__init__(lifetime, z_order, tags)
 
         # The center of the turret
@@ -457,6 +475,14 @@ class Enemy(Object):
         # Rect.Coordinates to display
         self.display_coords = ()
 
+        # A surface containing a white circle which will be used to spawn the boat trail
+        self.trail_surface = pygame.Surface(Constants.cscale(300, 300), pygame.SRCALPHA, 32).convert_alpha()
+        pygame.draw.circle(self.trail_surface, (255, 255, 255), Constants.cscale(150, 150), Constants.cscale(110), 40)
+
+        # Manages delay between trail spawns
+        self.trail_delay = 20
+        self.trail_delay_count = 10
+
     def run_sprite(self, screen, update_lock):
         pass
 
@@ -544,6 +570,16 @@ class Enemy(Object):
         # Calculates display coordinates
         self.display_coords = (int((self.pos[0] / Constants.SCREEN_SIZE[0]) * 900 - 450),
                                int(((Constants.SCREEN_SIZE[1] - self.pos[1]) / Constants.SCREEN_SIZE[1]) * 900 - 450))
+
+        # If the boat's speed is above a certain value, trail will spawn
+        print("Scaled velocity", self.velocity[0], Constants.posscale(0.1))
+        if math.fabs(self.velocity[0]) > Constants.posscale(0.1) or math.fabs(self.velocity[1]) > Constants.posscale(0.1):
+            self.trail_delay_count += 1
+            print("hey")
+            if self.trail_delay_count > self.trail_delay:
+                self.trail_delay_count = 0
+                Globe.MENU.GAME.add_sprite(InflateSurface(110, -2000, {}, self.trail_surface, 0.01, .3, 100,
+                                                          copy.copy(self.pos), fade=True, delay_inflation=10))
 
     # Checks collision with another circular hitbox against all the hitboxes of this enemy
     def hit_check(self, pos, radius):

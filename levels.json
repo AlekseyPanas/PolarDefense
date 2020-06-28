@@ -1,7 +1,7 @@
 [{
     "id": 1,
     "enemies": [
-        {"type": "buoy", "pos": [340, 200], "health": 1}
+        {"type": "jet_charger", "angle": 180, "pos": [750, 200], "velocity": 0, "acceleration": 0.005, "health": 1}
     ],
 
     "health": -1,
@@ -13,6 +13,19 @@
 
 {
     "id": 2,
+    "enemies": [
+        {"type": "buoy", "pos": [340, 200], "health": 1}
+    ],
+
+    "health": -1,
+    "loss_types": ["offscreen"],
+    "popups": [
+        {"text": "Welcome to your first level!", "width": 500, "topleft": [50, 300]}
+    ]
+},
+
+{
+    "id": 3,
     "enemies": [
         {"type": "buoy", "pos": [100, 300], "health": 1},
         {"type": "buoy", "pos": [700, 400], "health": 1},
@@ -27,7 +40,7 @@
 },
 
 {
-    "id": 3,
+    "id": 4,
     "enemies": [
         {"type": "jet_charger", "angle": 180, "pos": [750, 200], "velocity": 0, "acceleration": 0.005, "health": 1}
     ],
@@ -40,7 +53,7 @@
 },
 
 {
-    "id": 4,
+    "id": 5,
     "enemies": [
         {"type": "jet_charger", "angle": -90, "pos": [150, 150], "velocity": 0, "acceleration": 0.01, "health": 1}
     ],
@@ -53,10 +66,24 @@
 },
 
 {
-    "id": 5,
+    "id": 6,
     "enemies": [
         {"type": "jet_charger", "angle": -90, "pos": [150, 150], "velocity": 0, "acceleration": 0.01, "health": 1},
         {"type": "jet_charger", "angle": -90, "pos": [750, 150], "velocity": 0, "acceleration": 0.01, "health": 1}
+    ],
+
+    "health": -1,
+    "loss_types": ["offscreen"],
+    "popups": [
+        {"text": "Welcome to your first level!", "width": 500, "topleft": [50, 300]}
+    ]
+},
+
+{
+    "id": 7,
+    "enemies": [
+        {"type": "jet_charger", "angle": 30, "pos": [550, 450], "velocity": 0, "acceleration": 0.01, "health": 1},
+        {"type": "jet_charger", "angle": 150, "pos": [350, 450], "velocity": 0, "acceleration": 0.01, "health": 1}
     ],
 
     "health": -1,
